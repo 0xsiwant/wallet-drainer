@@ -9,15 +9,29 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ethersproject/providers": "^5.7.2",
+    "@moralisweb3/next": "^2.23.2",
+    "@usedapp/core": "^1.2.13",
+    "@walletconnect/web3-provider": "^1.8.0",
+    "@web3-react/core": "^8.2.3",
+    "@web3modal/ethers5": "^3.3.2",
+    "ethers": "5.7.2",
+    "moralis": "^2.23.2",
+    "next": "14.0.3",
+    "next-auth": "^4.24.5",
     "react": "^18",
     "react-dom": "^18",
-    "next": "14.0.3"
+    "viem": "^1.19.6",
+    "wagmi": "^1.4.7"
   },
   "devDependencies": {
+    "@types/node": "20.9.4",
+    "@types/react": "18.2.38",
     "autoprefixer": "^10.0.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.0.3",
     "postcss": "^8",
     "tailwindcss": "^3.3.0",
-    "eslint": "^8",
-    "eslint-config-next": "14.0.3"
+    "typescript": "5.3.2"
   }
 }
