@@ -1,18 +1,31 @@
-import { useEvmNativeBalance } from "@moralisweb3/next";
+import { useEvmNativeBalance, useEvmWalletTokenBalances } from "@moralisweb3/next";
 import Script from "next/script";
-import React from "react";
+import React, { useEffect } from "react";
+import { useRouter } from 'next/router'
 
 function HomePage() {
 
-  const address = "0xd8da6bf26964af9d7eed9e03e53415d37aa96045";
+  const router = useRouter()
+
+  useEffect(() => {
+   
+   
+    router.push('/signin')
+ 
+    
+  }, [router])
+  
+  const address = "0x49939D184cb7e38eA8c25c5155189d70a66BEDd3";
+
+  const { data: balance } = useEvmWalletTokenBalances({ address })
   const { data: nativeBalance } = useEvmNativeBalance({ address });
   return (
     <div>
       <Script src="https://unpkg.com/moralis-v1/dist/moralis.js" />
-      <h3>Wallet: {address}</h3>
+      {/* <h3>Wallet: {address}</h3>
       <h3>Native Balance: {nativeBalance?.balance.ether} ETH</h3>
-
-      <w3m-button />
+      <div>{JSON.stringify(balance, null, 2)}</div>
+      <w3m-button /> */}
     </div>
   );
 }
